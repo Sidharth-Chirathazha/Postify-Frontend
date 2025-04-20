@@ -1,14 +1,25 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { showSuccessToast, showErrorToast } from '../utils/toastConfig';
+import { loginUser } from '../redux/slices/authSlice';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
-    usernameOrEmail: '',
+    username: '',
     password: '',
     role: 'user'
   });
+  const { loading, error } = useSelector((state) => state.auth);
   
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (error) {
+    showErrorToast(error);
+    }
+  },  [error]); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,11 +30,21 @@ export default function LoginPage() {
     setFormData(prev => ({ ...prev, role }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Login data:', formData);
-    // After successful login, redirect to dashboard
+    try{
+        console.log('Form Data:', formData);
+        
+        const response = await dispatch(loginUser(formData)).unwrap();
+        showSuccessToast('Logged in successfully!');
+        if (response.user.role === 'user') {
+          navigate('/user/home');
+        } else if (response.user.role === 'admin') {
+          navigate('/admin/home');
+        }
+    }catch (error) {    
+        console.error('Login error:', error);
+    }
   };
 
   return (
@@ -62,14 +83,14 @@ export default function LoginPage() {
         
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
-            <label htmlFor="usernameOrEmail" className="block text-sm font-medium text-primary mb-2">
+            <label htmlFor="username" className="block text-sm font-medium text-primary mb-2">
               Username or Email
             </label>
             <input
               type="text"
-              id="usernameOrEmail"
-              name="usernameOrEmail"
-              value={formData.usernameOrEmail}
+              id="username"
+              name="username"
+              value={formData.username}
               onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               required
@@ -93,9 +114,14 @@ export default function LoginPage() {
           
           <button
             type="submit"
-            className="w-full bg-primary text-cream py-3 rounded-md hover:bg-primary/90 transition font-medium"
+            disabled={loading}
+            className={`w-full py-3 rounded-md transition font-medium ${
+                loading
+                  ? 'bg-primary/70 cursor-not-allowed'
+                  : 'bg-primary hover:bg-primary/90'
+              } text-cream`}
           >
-            Sign In
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
           
           <div className="mt-6 text-center">

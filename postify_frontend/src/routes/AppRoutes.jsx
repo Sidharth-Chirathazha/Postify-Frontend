@@ -3,78 +3,91 @@ import {
     Routes,
     Route,
     Navigate,
+    Outlet
   } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import MainLayout from '../components/MainLayout';
+import UserLayout from '../components/UserLayout';
+import AdminLayout from '../components/AdminLayout';
 import HomePage from '../pages/HomePage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegistrationPage';
-import UserDashboard from '../pages/user/UserDashboard';
-import AdminDashboard from '../pages/admin/AdminDashboard';
+import UserHome from '../pages/user/UserHome';
+import AdminHome from '../pages/admin/AdminHome';
 import NotFoundPage from '../pages/NotFoundPage';
+import { useEffect } from 'react';
+import { fetchCurrentUser } from '../redux/slices/authSlice';
+import LoadingSpinner from '../components/Loading';
+import UserProfile from '../pages/user/UserProfile';
   
   const AppRoutes = () => {
-    const user = useSelector((state) => state.auth.user);
+    const {user, loading} = useSelector((state) => state.auth);
     const isAuthenticated = !!user;
-  
-    const RequireAuth = ({ children, role }) => {
+    const dispatch = useDispatch();
+    console.log('User:', user);
+
+    useEffect(()=>{
+      dispatch(fetchCurrentUser());
+    },[dispatch])
+    
+    const RequireAuth = ({ role }) => {
       if (!isAuthenticated) return <Navigate to="/login" />;
   
       if (role && user.role !== role) {
         return <Navigate to="/" />;
       }
   
-      return children;
+      return <Outlet />;
     };
 
     const RedirectIfAuthenticated = ({ children }) => {
         if (isAuthenticated) {
           if (user.role === 'user') {
-            return <Navigate to="/user/dashboard" replace />;
+            return <Navigate to="/user/home" replace />;
           } else if (user.role === 'admin') {
-            return <Navigate to="/admin/dashboard" replace />;
+            return <Navigate to="/admin/home" replace />;
           }
         }
-        return children;
+        return <Outlet />;
       };
+
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-screen">
+          <LoadingSpinner />
+        </div>
+      );
+    }
+      
 
   
     return (
         <Routes>
           {/* Public */}
-          <Route path="/" element={<HomePage />} />
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<HomePage />} />
+          </Route>
 
-          <Route 
-            path="/login" 
-            element={
-            <RedirectIfAuthenticated>
-                <LoginPage />
-            </RedirectIfAuthenticated>
-            }
-          />
-
-          <Route 
-            path="/register" 
-            element={
-                <RedirectIfAuthenticated>
-                    <RegisterPage />
-                </RedirectIfAuthenticated>
-            } 
-          />
+          <Route element={<RedirectIfAuthenticated />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Route>
   
           {/* User Routes */}
-        <Route
-            element={<RequireAuth role="user" />}
-        >
-            <Route path="/user/dashboard" element={<UserDashboard />} />
+        <Route element={<RequireAuth role="user" />}>
+          <Route element={<UserLayout user={user} />}>
+            <Route path="/user/home" element={<UserHome />} />
+            <Route path="/user/profile" element={<UserProfile />} />
             {/* Add more user routes here, e.g., <Route path="/user/profile" element={<UserProfile />} /> */}
+          </Route>
         </Route>
 
         {/* Admin Routes */}
-        <Route
-            element={<RequireAuth role="admin" />}
-        >
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route element={<RequireAuth role="admin" />}>
+          <Route element={<AdminLayout user={user} />}>
+            <Route path="/admin/home" element={<AdminHome />} />
             {/* Add more admin routes here */}
+          </Route>
         </Route>
         
         <Route path="*" element={<NotFoundPage />} />
