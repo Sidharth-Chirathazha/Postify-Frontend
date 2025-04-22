@@ -36,10 +36,10 @@ export default function UserLayout({ user }) {
           
           {/* Nav Items for authenticated users - Centered */}
           <div className="hidden md:flex space-x-8 items-center justify-center flex-1">
-            <button onClick={() => navigate('/explore')} className="text-cream hover:text-cream/80 transition">
+            <button onClick={() => navigate('/user/explore')} className="text-cream hover:text-cream/80 transition">
               Explore
             </button>
-            <button onClick={() => navigate('/my-posts')} className="text-cream hover:text-cream/80 transition">
+            <button onClick={() => navigate('/user/my-blogs')} className="text-cream hover:text-cream/80 transition">
               My Posts
             </button>
             <button onClick={() => navigate('/user/profile')} className="text-cream hover:text-cream/80 transition">

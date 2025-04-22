@@ -58,6 +58,7 @@ const authSlice = createSlice({
     error: null,
     userError: null,
     isUpdating: false,
+    updateError: null,
   },
   reducers: {
     logout(state) {
@@ -107,7 +108,7 @@ const authSlice = createSlice({
       })
       .addCase(updateUser.pending, (state) => {
         state.isUpdating = true;
-        state.userError = null;
+        state.updateError = null;
       })
       .addCase(updateUser.fulfilled, (state, action) => {
         state.isUpdating = false;
@@ -116,7 +117,7 @@ const authSlice = createSlice({
 
       .addCase(updateUser.rejected, (state, action) => {
         state.isUpdating = false;
-        state.userError = action.payload?.non_field_errors?.[0] || action.payload?.username?.[0] || "Something went wrong";
+        state.updateError = action.payload?.non_field_errors?.[0] || action.payload?.username?.[0] || "Something went wrong";
       })  
 
   },

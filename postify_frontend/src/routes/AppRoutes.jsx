@@ -19,6 +19,8 @@ import { useEffect } from 'react';
 import { fetchCurrentUser } from '../redux/slices/authSlice';
 import LoadingSpinner from '../components/Loading';
 import UserProfile from '../pages/user/UserProfile';
+import UserOwnedBlogs from '../pages/user/UserOwnedBlogs';
+import ExploreBlogs from '../pages/user/ExploreBlogs';
   
   const AppRoutes = () => {
     const {user, loading} = useSelector((state) => state.auth);
@@ -40,7 +42,7 @@ import UserProfile from '../pages/user/UserProfile';
       return <Outlet />;
     };
 
-    const RedirectIfAuthenticated = ({ children }) => {
+    const RedirectIfAuthenticated = () => {
         if (isAuthenticated) {
           if (user.role === 'user') {
             return <Navigate to="/user/home" replace />;
@@ -78,6 +80,8 @@ import UserProfile from '../pages/user/UserProfile';
           <Route element={<UserLayout user={user} />}>
             <Route path="/user/home" element={<UserHome />} />
             <Route path="/user/profile" element={<UserProfile />} />
+            <Route path="/user/my-blogs" element={<UserOwnedBlogs />} />
+            <Route path="/user/explore" element={<ExploreBlogs />} />
             {/* Add more user routes here, e.g., <Route path="/user/profile" element={<UserProfile />} /> */}
           </Route>
         </Route>

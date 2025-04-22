@@ -15,16 +15,14 @@ const UserProfile = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const fileInputRef = useRef(null);
   
-
-  const user = useSelector(state => state.auth.user) || {};
-  const isUpdating = useSelector(state => state.auth.isUpdating);
-  const userError = useSelector(state => state.auth.userError);
+  const {user, isUpdating, updateError} = useSelector(state => state.auth);
+  
 
   useEffect(() => {
-    if(userError) {
-      showErrorToast(userError);
+    if(updateError) {
+      showErrorToast(updateError);
     }
-  }, [userError]);
+  }, [updateError]);
   
 
   const [formData, setFormData] = useState({
@@ -143,6 +141,7 @@ const UserProfile = () => {
 
       setIsEditing(false);
       showSuccessMessage();
+      showSuccessToast('Profile updated successfully!');
       
 
       setImageFile(null);
