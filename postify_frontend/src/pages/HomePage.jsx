@@ -19,7 +19,7 @@ export default function HomePage() {
               Get Started
             </button>
           <button 
-            onClick={() => navigate('/blogs')}
+            onClick={() => navigate('/login')}
             className="px-8 py-3 border border-primary text-primary font-medium rounded-lg text-lg hover:bg-primary/5 transition"
           >
             Browse Blogs

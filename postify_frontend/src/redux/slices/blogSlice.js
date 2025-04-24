@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '../../api/axiosInstance';
+import { logout } from './authSlice';
 
 
 const findCommentById = (comments, targetId) => {
@@ -15,14 +16,20 @@ const findCommentById = (comments, targetId) => {
 
 export const fetchBlogs = createAsyncThunk(
   'blogs/fetchBlogs',
-  async (url = 'blog/posts/', thunkAPI) => {
+  async ({url = 'blog/posts/', search='', order=''}, thunkAPI) => {
     try {
-      // If it's a full URL (next page), strip the base
-      const relativeUrl = url.startsWith('http')
-        ? url.replace(`${import.meta.env.VITE_API_BASE_URL}/`, '') // adjust if needed
-        : url;
+      let config = {};
+      const params = new URLSearchParams();
+      if (!url.includes('?')) {
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (order) params.append('ordering', order);
+        config.params = params;
+      }
+      const relativeUrl = url.replace(/^\/?api\//, '');
+      
 
-      const response = await axiosInstance.get(relativeUrl);
+        const response = await axiosInstance.get(relativeUrl, config);
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data || 'Error fetching blogs');
@@ -142,15 +149,26 @@ const blogSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch all
+
+      .addCase(logout, (state) => {
+        state.blogs = [];
+        state.currentUserBlogs = [];
+        state.blog = null;
+        state.loading = false;
+        state.error = null;
+      })
+
       .addCase(fetchBlogs.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchBlogs.fulfilled, (state, action) => {
         const { results, next } = action.payload;
-      
-        const isFirstPage = !action.meta.arg || action.meta.arg.includes('page=1') || action.meta.arg === 'blog/';
+        console.log('blogs:', action.payload);
+        
+        const url = action.meta.arg?.url || 'blog/';
+        const isFirstPage = !action.meta.arg || url.includes('page=1') || url === 'blog/';
+
       
         if (isFirstPage) {
           state.blogs = results;
@@ -169,7 +187,7 @@ const blogSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Fetch single
+    
       .addCase(fetchSingleBlog.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -183,7 +201,7 @@ const blogSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Create
+      
       .addCase(createBlog.pending, (state) => {
         state.loading = true;
         state.createSuccess = false;
@@ -200,7 +218,6 @@ const blogSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Update
       .addCase(updateBlog.pending, (state) => {
         state.loading = true;
         state.updateSuccess = false;
@@ -217,7 +234,6 @@ const blogSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Delete
       .addCase(deleteBlog.pending, (state) => {
         state.loading = true;
         state.deleteSuccess = false;

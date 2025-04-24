@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Calendar, Layers, Eye } from 'lucide-react';
 import BlogCard from '../../components/BlogCard';
 import CreateEditBlogModal from '../../components/CreateEditBlogModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   fetchCurrentUserBlogs, 
-  deleteBlog, 
-
+  deleteBlog,
+  markBlogAsRead,
+  toggleBlogLike,
+  addComment,
+  deleteComment,
 } from '../../redux/slices/blogSlice';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { showSuccessToast, showErrorToast } from '../../utils/toastConfig';
@@ -20,7 +23,7 @@ const UserOwnedBlogs = () => {
   const dispatch = useDispatch();
   const { currentUserBlogs, loading, error } = useSelector((state) => state.blogs);
 
-  // Fetch blogs on component mount
+
   useEffect(() => {
     dispatch(fetchCurrentUserBlogs());
   }, [dispatch]);
@@ -46,7 +49,7 @@ const UserOwnedBlogs = () => {
   const handleEditBlog = (blogId) => {
     const blogToEdit = currentUserBlogs.find((blog) => blog.id === blogId);
     if (blogToEdit) {
-      // Map images to the format expected by CreateEditBlogModal
+      
       const formattedBlog = {
         ...blogToEdit,
         images: [blogToEdit.image_1, blogToEdit.image_2, blogToEdit.image_3].filter(Boolean),
@@ -62,7 +65,7 @@ const UserOwnedBlogs = () => {
   };
 
   const handleSaveBlog = () => {
-    // After saving, refetch blogs to update the list
+    
     dispatch(fetchCurrentUserBlogs());
     setShowModal(false);
     setCurrentBlogToEdit(null);
@@ -73,37 +76,30 @@ const UserOwnedBlogs = () => {
     setCurrentBlogToEdit(null);
   };
 
-  // Handler for read count incrementation
+  
   const handleReadCountIncremented = async (blogId) => {
     try {
-      // In a real implementation, you'd make an API call to increment the read count
-      console.log(`Incrementing read count for blog ID: ${blogId}`);
-      
-      // Sample implementation (you'd need to create this action in your Redux slice)
-      // await dispatch(incrementReadCount(blogId)).unwrap();
-      
-      // For this example, we'll just log the action
-      // In a real app, you might want to update the UI to reflect the new count
+      await dispatch(markBlogAsRead(blogId)).unwrap();
     } catch (error) {
       console.error('Error incrementing read count:', error);
+      showErrorToast('Failed to increment read count. Please try again.');
     }
   };
   
-  // Handler for toggling a blog like
+  
   const handleLikeToggle = async (blogId) => {
     try {
-      await dispatch(toggleLikeBlog(blogId)).unwrap();
-      // The blog state will be updated automatically by the reducer
+      await dispatch(toggleBlogLike(blogId)).unwrap();
     } catch (error) {
       console.error('Error toggling like:', error);
       showErrorToast('Failed to update like. Please try again.');
     }
   };
   
-  // Handler for adding a comment
-  const handleCommentSubmit = async (blogId, commentText) => {
+  
+  const handleCommentSubmit = async (blogId, commentText, parentCommentId=null) => {
     try {
-      await dispatch(addComment({ blogId, text: commentText })).unwrap();
+      await dispatch(addComment({ blogId, text: commentText, parentCommentId })).unwrap();
       showSuccessToast('Comment added successfully!');
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -111,10 +107,10 @@ const UserOwnedBlogs = () => {
     }
   };
   
-  // Handler for deleting a comment
-  const handleDeleteComment = async (commentId, blogId) => {
+  
+  const handleDeleteComment = async (blogId, commentId) => {
     try {
-      await dispatch(deleteComment({ commentId, blogId })).unwrap();
+      await dispatch(deleteComment({blogId, commentId})).unwrap();
       showSuccessToast('Comment deleted successfully!');
     } catch (error) {
       console.error('Error deleting comment:', error);
@@ -123,37 +119,96 @@ const UserOwnedBlogs = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-4 bg-cream min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-primary">My Blogs</h1>
+    <div className="max-w-4xl mx-auto p-4 md:p-6 bg-cream min-h-screen">
+      {/* Enhanced Header Section */}
+      <div className="mb-8 border-b border-primary/20 pb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-primary">My Blogs</h1>
+            <p className="text-primary/70 mt-2">
+              Manage and explore your published content
+            </p>
+          </div>
+          <button
+            onClick={handleCreateBlog}
+            className="hidden md:flex items-center bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition shadow-md"
+          >
+            <Plus size={18} className="mr-2" />
+            New Blog
+          </button>
+        </div>
+        
+        {/* Stats summary */}
+        {!loading && !error && currentUserBlogs.length > 0 && (
+          <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="bg-white rounded-lg p-4 shadow-sm flex items-center">
+              <Layers size={20} className="text-primary mr-3" />
+              <div>
+                <p className="text-xs text-gray-500">Total Blogs</p>
+                <p className="text-xl font-bold text-primary">{currentUserBlogs.length}</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-sm flex items-center">
+              <Calendar size={20} className="text-primary mr-3" />
+              <div>
+                <p className="text-xs text-gray-500">Latest Post</p>
+                <p className="text-sm font-medium text-gray-700 truncate">
+                  {currentUserBlogs.length > 0 ? new Date(
+                    Math.max(...currentUserBlogs.map(b => new Date(b.created_at)))
+                  ).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}
+                </p>
+              </div>
+            </div>
+            <div className="hidden md:flex bg-white rounded-lg p-4 shadow-sm items-center">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 mr-3">
+                <Eye size={16} className="text-green-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Total Views</p>
+                <p className="text-xl font-bold text-primary">
+                  {currentUserBlogs.reduce((sum, blog) => sum + blog.read_count, 0)}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
+      {/* Loading State */}
       {loading ? (
-        <div className="flex items-center justify-center h-screen">
+        <div className="flex flex-col items-center justify-center py-20">
           <LoadingSpinner />
+          <p className="mt-4 text-gray-600">Loading your blogs...</p>
         </div>
       ) : error ? (
-        <div className="text-center py-8">
+        <div className="text-center py-16 bg-red-50 rounded-lg border border-red-100">
           <p className="text-lg text-red-600 mb-4">Failed to load blogs: {error}</p>
           <button
             onClick={() => dispatch(fetchCurrentUserBlogs())}
-            className="bg-primary text-white px-4 py-2 rounded-lg"
+            className="bg-primary text-white px-6 py-2 rounded-lg shadow hover:bg-primary/90 transition"
           >
             Retry
           </button>
         </div>
       ) : currentUserBlogs.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-lg text-gray-600 mb-4">You haven't created any blogs yet.</p>
+        <div className="flex flex-col items-center justify-center py-16 bg-white/50 rounded-xl shadow-sm">
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+            <Plus size={32} className="text-primary" />
+          </div>
+          <p className="text-xl font-medium text-gray-700 mb-3">You haven't created any blogs yet</p>
+          <p className="text-gray-500 mb-6 text-center max-w-md">Share your thoughts, stories, and experiences with the world by creating your first blog post.</p>
           <button
             onClick={handleCreateBlog}
-            className="bg-primary text-white px-4 py-2 rounded-lg flex items-center mx-auto"
+            className="bg-primary text-white px-6 py-3 rounded-lg flex items-center shadow-md hover:shadow-lg transition"
           >
-            <Plus size={18} className="mr-1" />
+            <Plus size={18} className="mr-2" />
             Create Your First Blog
           </button>
         </div>
       ) : (
         <>
-          <div className="space-y-6">
+          {/* Blog Grid */}
+          <div className="grid gap-8 md:grid-cols-2">
             {currentUserBlogs.map((blog) => (
               <BlogCard
                 key={blog.id}
@@ -180,10 +235,11 @@ const UserOwnedBlogs = () => {
             ))}
           </div>
 
-          {/* Create blog button (fixed position) */}
+          {/* Create blog button (fixed position) - mobile only */}
           <button
             onClick={handleCreateBlog}
-            className="fixed bottom-8 left-8 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-gray-800 transition-colors"
+            className="md:hidden fixed bottom-8 right-8 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-primary/90 transition-colors flex items-center justify-center"
+            style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}
           >
             <Plus size={24} />
           </button>

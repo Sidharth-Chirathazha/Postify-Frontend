@@ -1,9 +1,7 @@
-// src/utils/toastConfig.js
-
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Custom toast configurations
+// Base toast configuration
 const toastConfig = {
   position: "top-right",
   autoClose: 3000,
@@ -21,7 +19,7 @@ const toastConfig = {
   }
 };
 
-// Success toast
+// Make sure to export each function
 export const showSuccessToast = (message) => {
   return toast.success(message, {
     ...toastConfig,
@@ -30,7 +28,6 @@ export const showSuccessToast = (message) => {
   });
 };
 
-// Error toast
 export const showErrorToast = (message) => {
   return toast.error(message, {
     ...toastConfig,
@@ -39,7 +36,6 @@ export const showErrorToast = (message) => {
   });
 };
 
-// Info toast
 export const showInfoToast = (message) => {
   return toast.info(message, {
     ...toastConfig,
@@ -48,7 +44,6 @@ export const showInfoToast = (message) => {
   });
 };
 
-// Warning toast
 export const showWarningToast = (message) => {
   return toast.warning(message, {
     ...toastConfig,
@@ -57,7 +52,6 @@ export const showWarningToast = (message) => {
   });
 };
 
-// Basic toast (no icon)
 export const showToast = (message) => {
   return toast(message, toastConfig);
 };

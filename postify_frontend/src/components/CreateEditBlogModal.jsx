@@ -14,10 +14,10 @@ const CreateEditBlogModal = ({ isOpen, onClose, blogToEdit = null }) => {
   const dispatch = useDispatch();
   const isEditMode = !!blogToEdit;
 
-  // Validation regex for no leading special characters
+
   const noLeadingSpecialChar = /^(?![!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]).*$/;
 
-  // Populate form when editing
+
   useEffect(() => {
     if (blogToEdit) {
       setValue('title', blogToEdit.title || '');
@@ -43,7 +43,7 @@ const CreateEditBlogModal = ({ isOpen, onClose, blogToEdit = null }) => {
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     
-    // Validate file size (2MB = 2 * 1024 * 1024 bytes)
+    
     const invalidFiles = files.filter(file => file.size > 2 * 1024 * 1024);
     if (invalidFiles.length > 0) {
       alert('All images must be less than 2MB');
@@ -51,7 +51,7 @@ const CreateEditBlogModal = ({ isOpen, onClose, blogToEdit = null }) => {
     }
 
     try {
-      // Get Cloudinary signature
+      
       const { data: cloudinaryConfig } = await axiosInstance.get('cloudinary-signature/');
       
       const newImages = await Promise.all(

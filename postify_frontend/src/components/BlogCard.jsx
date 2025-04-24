@@ -1,28 +1,32 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Eye, Trash2, Edit } from 'lucide-react';
+import { Heart, MessageCircle, Eye, Trash2, Edit, Calendar, ChevronLeft, ChevronRight, Lock, Unlock } from 'lucide-react';
 import BlogReadModal from './BlogReadModal';
 
 const BlogCard = ({ 
   blog, 
-  isMyBlog = false, 
+  isMyBlog = false,
+  isAdmin = false, 
   onDelete, 
   onEdit, 
   onReadCountIncremented,
   onLikeToggle,
   onCommentSubmit,
-  onDeleteComment
+  onDeleteComment,
+  onToggleCommentStatus,
+  onToggleBlogStatus
 }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isReadModalOpen, setIsReadModalOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleNextImage = (e) => {
-    e.stopPropagation(); // Prevent opening the read modal
+    e.stopPropagation();
     setActiveImageIndex((prev) => (prev === blog.images.length - 1 ? 0 : prev + 1));
   };
 
   const handlePrevImage = (e) => {
-    e.stopPropagation(); // Prevent opening the read modal
+    e.stopPropagation();
     setActiveImageIndex((prev) => (prev === 0 ? blog.images.length - 1 : prev - 1));
   };
   
@@ -35,89 +39,123 @@ const BlogCard = ({
   };
   
   const handleEditClick = (e, blogId) => {
-    e.stopPropagation(); // Prevent opening the read modal
+    e.stopPropagation();
     onEdit(blogId);
   };
   
   const handleDeleteClick = (e, blogId) => {
-    e.stopPropagation(); // Prevent opening the read modal
+    e.stopPropagation();
     onDelete(blogId);
   };
+
+  const toggleReadMore = (e) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+  };
+
+
+  const contentPreview = blog.content.substring(0, 80);
+  const needsReadMore = blog.content.length > 80;
 
   return (
     <>
       <div 
-        className={`bg-cream rounded-2xl shadow-lg overflow-hidden mb-6 cursor-pointer transition-all duration-300 ${isHovered ? 'transform scale-[1.01]' : ''}`}
+        className={`bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 max-w-md border border-gray-100 ${
+          isHovered ? 'transform scale-[1.02] shadow-lg border-gray-200' : ''
+        }`}
         onClick={handleOpenReadModal}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Author info with lighter background */}
-        <div className="flex items-center justify-between p-4 bg-cream border-b border-gray-200">
+        {/* Author and Actions Row */}
+        <div className="flex justify-between items-center px-3 py-2.5 border-b border-gray-50">
           <div className="flex items-center">
-            <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary ring-offset-2 mr-3">
+            <div className="w-7 h-7 rounded-full overflow-hidden ring-2 ring-primary/20 mr-2 flex-shrink-0">
               <img 
                 src={blog.author.profile_pic} 
-                alt={blog.author.username} 
+                alt={blog.author.username}
                 className="w-full h-full object-cover"
               />
             </div>
             <div>
-              <p className="font-bold text-primary">{blog.author.username}</p>
-              <p className="text-gray-500 text-sm">{blog.date}</p>
+              <p className="font-semibold text-sm text-gray-800">{blog.author.username}</p>
+              <div className="flex items-center text-gray-400 text-xs">
+                <Calendar size={10} className="mr-1" />
+                {blog.date}
+              </div>
             </div>
           </div>
           
-          {isMyBlog && (
-            <div className="flex items-center space-x-2" onClick={e => e.stopPropagation()}>
+          {/* Action Buttons */}
+          <div className="flex items-center space-x-1" onClick={e => e.stopPropagation()}>
+            {isMyBlog && !isAdmin && (
+              <>
+                <button 
+                  onClick={(e) => handleEditClick(e, blog.id)} 
+                  className="text-gray-400 hover:text-primary p-1.5 rounded-full hover:bg-gray-50 transition-colors"
+                  aria-label="Edit blog"
+                >
+                  <Edit size={16} />
+                </button>
+                <button 
+                  onClick={(e) => handleDeleteClick(e, blog.id)} 
+                  className="text-gray-400 hover:text-red-500 p-1.5 rounded-full hover:bg-gray-50 transition-colors"
+                  aria-label="Delete blog"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </>
+            )}
+            {isAdmin && (
               <button 
-                onClick={(e) => handleEditClick(e, blog.id)} 
-                className="text-gray-500 hover:text-primary p-2 rounded-full hover:bg-gray-100 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleBlogStatus(blog.id);
+                }} 
+                className={`p-1.5 rounded-full hover:bg-gray-50 transition-colors ${
+                  blog.is_active 
+                    ? 'text-gray-400 hover:text-red-500' 
+                    : 'text-gray-400 hover:text-green-500'
+                }`}
+                aria-label={blog.is_active ? 'Block blog' : 'Unblock blog'}
               >
-                <Edit size={18} />
+                {blog.is_active ? <Lock size={16} /> : <Unlock size={16} />}
               </button>
-              <button 
-                onClick={(e) => handleDeleteClick(e, blog.id)} 
-                className="text-gray-500 hover:text-red-500 p-2 rounded-full hover:bg-gray-100 transition-colors"
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        {/* Blog title */}
-        <h2 className="text-xl font-bold px-5 pt-4 pb-2 text-primary">{blog.title}</h2>
-
-        {/* Images carousel */}
-        <div className="relative">
-          <div className="overflow-hidden h-64 bg-gray-100">
-            <img 
-              src={blog.images[activeImageIndex]} 
-              alt={`Blog image ${activeImageIndex + 1}`}
-              className="w-full h-full object-cover transition-transform duration-500"
-            />
-          </div>
+        {/* Blog Images Carousel  */}
+        <div className="relative aspect-[16/9] w-full bg-gray-100">
+          <img 
+            src={blog.images[activeImageIndex]} 
+            alt={`Blog image ${activeImageIndex + 1}`}
+            className="w-full h-full object-cover transition-opacity duration-300"
+          />
           
           {blog.images.length > 1 && (
             <>
               <button 
                 onClick={handlePrevImage}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-cream bg-opacity-80 text-primary p-2 rounded-full hover:bg-opacity-100 transition-all shadow-md"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-20 text-white p-1 rounded-full hover:bg-opacity-40 transition-all shadow-sm flex items-center justify-center"
+                aria-label="Previous image"
               >
-                &lt;
+                <ChevronLeft size={16} />
               </button>
               <button 
                 onClick={handleNextImage}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-cream bg-opacity-80 text-primary p-2 rounded-full hover:bg-opacity-100 transition-all shadow-md"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-20 text-white p-1 rounded-full hover:bg-opacity-40 transition-all shadow-sm flex items-center justify-center"
+                aria-label="Next image"
               >
-                &gt;
+                <ChevronRight size={16} />
               </button>
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-2">
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1">
                 {blog.images.map((_, index) => (
                   <div 
                     key={index} 
-                    className={`w-2 h-2 rounded-full transition-all ${index === activeImageIndex ? 'bg-primary w-4' : 'bg-gray-300'}`}
+                    className={`h-1 rounded-full transition-all ${
+                      index === activeImageIndex ? 'bg-white w-4' : 'bg-white bg-opacity-40 w-1.5'
+                    }`}
                   />
                 ))}
               </div>
@@ -125,46 +163,68 @@ const BlogCard = ({
           )}
         </div>
 
-        {/* Blog content preview */}
-        <div className="p-5 bg-cream">
-          <p className="text-gray-700 mb-4 leading-relaxed">
-            {blog.content.length > 150 
-              ? `${blog.content.substring(0, 150)}...`
-              : blog.content}
-            {blog.content.length > 150 && (
-              <span className="text-primary font-semibold ml-1 hover:underline">Read more</span>
+        {/* Blog Title and Content Preview */}
+        <div className="px-4 pt-3 pb-2">
+          <h2 className="text-base font-bold text-gray-800 line-clamp-1 mb-1">
+            {blog.title}
+          </h2>
+          
+          <p className="text-xs text-gray-600 line-clamp-2">
+            {isExpanded ? blog.content : contentPreview}
+            {needsReadMore && (
+              <button 
+                onClick={toggleReadMore} 
+                className="text-primary font-medium ml-1 text-xs"
+              >
+                {isExpanded ? "Show less" : "Read more"}
+              </button>
             )}
           </p>
-          
-          {/* Engagement stats with subtle card footer */}
-          <div className="flex items-center justify-between text-gray-700 border-t border-gray-200 pt-4 mt-2">
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2 group">
-                <Heart size={18} className={`group-hover:scale-110 transition-transform ${blog.isLiked ? "text-red-500 fill-red-500" : ""}`} />
-                <span>{blog.likeCount}</span>
-              </div>
-              <div className="flex items-center space-x-2 group">
-                <MessageCircle size={18} className="group-hover:scale-110 transition-transform" />
-                <span>{blog.comments.length}</span>
-              </div>
+        </div>
+        
+        {/* Engagement Stats*/}
+        <div className="flex items-center justify-between px-4 py-2.5 border-t border-gray-50 bg-gray-50/50">
+          <div className="flex items-center space-x-5">
+            <button 
+              className="flex items-center space-x-1.5 group"
+              onClick={(e) => {
+                e.stopPropagation();
+                onLikeToggle(blog.id);
+              }}
+            >
+              <Heart 
+                size={18} 
+                className={`transition-all duration-300 ${
+                  blog.isLiked ? "text-red-500 fill-red-500" : "text-gray-500 hover:text-red-400"
+                }`}
+              />
+              <span className={`text-xs font-medium ${blog.isLiked ? 'text-red-500' : 'text-gray-600'}`}>
+                {blog.likeCount}
+              </span>
+            </button>
+            <div className="flex items-center space-x-1.5 text-gray-600">
+              <MessageCircle size={18} className="text-gray-500" />
+              <span className="text-xs font-medium">{blog.comments.length}</span>
             </div>
-            <div className="flex items-center space-x-2 text-gray-500">
+            <div className="flex items-center space-x-1.5 text-gray-500">
               <Eye size={18} />
-              <span>{blog.readCount} Views</span>
+              <span className="text-xs font-medium">{blog.readCount}</span>
             </div>
           </div>
         </div>
       </div>
       
-      {/* Blog Read Modal - with all interactive functionality */}
+      {/* Blog Read Modal  */}
       <BlogReadModal 
         blog={blog}
         isOpen={isReadModalOpen}
         onClose={handleCloseReadModal}
-        onReadCountIncremented={onReadCountIncremented}
-        onLikeToggle={onLikeToggle}
-        onCommentSubmit={onCommentSubmit}
-        onDeleteComment={onDeleteComment}
+        isAdmin={isAdmin}
+        onReadCountIncremented={isAdmin ? null : onReadCountIncremented}
+        onLikeToggle={isAdmin ? null : onLikeToggle}
+        onCommentSubmit={isAdmin ? null : onCommentSubmit}
+        onDeleteComment={isAdmin ? null : onDeleteComment}
+        onToggleCommentStatus={isAdmin ? onToggleCommentStatus : null}
       />
     </>
   );

@@ -24,11 +24,10 @@ axiosInstance.interceptors.response.use(
   async error => {
     const originalRequest = error.config;
 
-    const errorDetail = error.response?.data?.detail;
+    // const errorDetail = error.response?.data?.detail || error.response?.data?.error || error.response?.data?.message;
 
     // Prevent infinite loop
     if ((error.response?.status === 401 || error.response?.status === 403) &&
-    errorDetail?.toLowerCase()?.includes('token') &&
     !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

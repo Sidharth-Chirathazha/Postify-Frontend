@@ -1,12 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '../../api/axiosInstance';
-import { useFormState } from 'react-hook-form';
+
 
 export const loginUser = createAsyncThunk('auth/loginUser', async (data, thunkAPI) => {
   try {
     const response = await axiosInstance.post('user/login/', data);
     return response.data;
   } catch (error) {
+    
     return thunkAPI.rejectWithValue(error.response.data);
   }
 });
@@ -64,7 +65,13 @@ const authSlice = createSlice({
     logout(state) {
       state.user = null;
       state.isAuthenticated = false;
-    }
+    },
+    clearError(state) {
+      state.error = null;
+      state.userError = null;
+      state.updateError = null;
+    },
+
   },
   extraReducers: (builder) => {
     builder
@@ -105,6 +112,8 @@ const authSlice = createSlice({
       .addCase(fetchCurrentUser.rejected, (state, action) => {
         state.loading = false;
         state.userError = action.payload?.non_field_errors?.[0] || "Something went wrong";
+        state.user = null;
+        state.isAuthenticated = false;
       })
       .addCase(updateUser.pending, (state) => {
         state.isUpdating = true;
@@ -123,5 +132,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, clearError } = authSlice.actions;
 export default authSlice.reducer;

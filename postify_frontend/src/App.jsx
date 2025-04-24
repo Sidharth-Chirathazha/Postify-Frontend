@@ -9,23 +9,23 @@ function App() {
 
   return (
     <Router>
-      <AppRoutes />
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        style={{
-          backgroundColor: "#FFFDF2", // cream color
-          color: "#000000" // black color
-        }}
-      />
+       <div className="app-container">
+        <AppRoutes />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+          limit={3}
+          stacked
+        />
+      </div>
     </Router>
   )
 }

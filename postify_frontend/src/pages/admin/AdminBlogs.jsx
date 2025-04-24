@@ -2,19 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, Compass, RefreshCw } from 'lucide-react';
 import BlogCard from '../../components/BlogCard';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchBlogs, markBlogAsRead, toggleBlogLike, addComment, deleteComment } from '../../redux/slices/blogSlice';
 import { showSuccessToast, showErrorToast } from '../../utils/toastConfig';
 import LoadingSpinner from '../../components/Loading';
+import { fetchAdminBlogs, toggleBlogStatus, toggleCommentStatus } from '../../redux/slices/adminSlice';
 
-const ExploreBlogs = () => {
+const AdminBlogs = () => {
   const dispatch = useDispatch();
-  const { blogs, loading, error, next } = useSelector((state) => state.blogs);
+  const { adminBlogs, loading, error, next } = useSelector((state) => state.admin);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-  const [activeOrder, setActiveOrder] = useState('latest');
-  const [showOrders, setShowOrders] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('latest');
+  const [showFilters, setShowFilters] = useState(false);
 
-  
+
+
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -25,79 +26,62 @@ const ExploreBlogs = () => {
   }, [searchTerm]);
 
   useEffect(() => {
-      fetchBlogData();
-    }, [debouncedSearchTerm, activeOrder]);
+    fetchBlogData();
+  }, [debouncedSearchTerm, activeFilter]);
 
   const fetchBlogData = () => {
-      let orderParam = '';
-      if (activeOrder === 'latest') orderParam = '-created_at';
-      if (activeOrder === 'popular') orderParam = '-read_count';
-      dispatch(fetchBlogs({
-        search: debouncedSearchTerm,
-        order: orderParam
-      }));
-    };
+    let isActiveParam = '';
+    if (activeFilter === 'active') isActiveParam = true;
+    if (activeFilter === 'blocked') isActiveParam = false;
+    dispatch(fetchAdminBlogs({
+      search: debouncedSearchTerm,
+      isActive: isActiveParam
+    }));
+  };
+
 
 
   const handleLoadMore = () => {
     if (next) {
       const urlObj = new URL(next);
       const relativeUrl = urlObj.pathname + urlObj.search;
-      dispatch(fetchBlogs({ url: relativeUrl }));
+      dispatch(fetchAdminBlogs({ url: relativeUrl }));
     }
   };
 
   
-  const handleReadCountIncremented = async (blogId) => {
-    try {
-      await dispatch(markBlogAsRead(blogId)).unwrap();
-    } catch (error) {
-      console.error('Error incrementing read count:', error);
-      showErrorToast('Failed to increment read count. Please try again.');
-    }
-  };
   
 
-  const handleLikeToggle = async (blogId) => {
+  const handleToggleCommentStatus = async (commentId) => {
     try {
-      await dispatch(toggleBlogLike(blogId)).unwrap();
+      await dispatch(toggleCommentStatus(commentId)).unwrap();
+      showSuccessToast('Comment status updated successfully!');
     } catch (error) {
-      console.error('Error toggling like:', error);
-      showErrorToast('Failed to update like. Please try again.');
+      console.error('Error updating comment status:', error);
+      showErrorToast('Failed update comment status. Please try again.');
     }
   };
-  
 
-  const handleCommentSubmit = async (blogId, commentText, parentCommentId=null) => {
+  const handleToggleBlogStatus = async (blogId) => {
     try {
-      await dispatch(addComment({ blogId, content: commentText, parentCommentId })).unwrap();
-      showSuccessToast('Comment added successfully!');
+        
+      await dispatch(toggleBlogStatus(blogId)).unwrap();
+      showSuccessToast('Blog status updated successfully!');
     } catch (error) {
-      console.error('Error adding comment:', error);
-      showErrorToast('Failed to add comment. Please try again.');
-    }
-  };
-  
-
-  const handleDeleteComment = async (blogId, commentId) => {
-    try {
-      await dispatch(deleteComment({blogId, commentId})).unwrap();
-      showSuccessToast('Comment deleted successfully!');
-    } catch (error) {
-      console.error('Error deleting comment:', error);
-      showErrorToast('Failed to delete comment. Please try again.');
+      console.error('Error updating blog status:', error);
+      showErrorToast('Failed update blog status. Please try again.');
     }
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-  
+    
+
   };
 
-  
-  const setOrder = (order) => {
-    setActiveOrder(order);
-    setShowOrders(false);
+  const setFilter = (filter) => {
+    setActiveFilter(filter);
+    setShowFilters(false);
   };
 
   return (
@@ -108,10 +92,10 @@ const ExploreBlogs = () => {
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-primary flex items-center">
               <Compass className="mr-3 text-primary hidden md:inline" />
-              Explore Blogs
+              Manage Blogs
             </h1>
             <p className="text-primary/70 mt-2">
-              Discover stories, thoughts, and ideas from writers around the world
+            Review, publish, or deactivate blogs to ensure quality and community guidelines are maintained.
             </p>
           </div>
           
@@ -131,66 +115,82 @@ const ExploreBlogs = () => {
         <div className="bg-white p-3 rounded-lg shadow-sm flex items-center justify-between mb-6">
           <div className="hidden md:flex space-x-1">
             <button 
-              onClick={() => setOrder('latest')}
+              onClick={() => setFilter('all')}
               className={`px-4 py-1.5 rounded-md transition ${
-                activeOrder === 'latest' 
+                activeFilter === 'all' 
                   ? 'bg-primary text-white' 
                   : 'hover:bg-gray-100 text-gray-700'
               }`}
             >
-              Latest
+              All Blogs
             </button>
             <button 
-              onClick={() => setOrder('popular')}
+              onClick={() => setFilter('active')}
               className={`px-4 py-1.5 rounded-md transition ${
-                activeOrder === 'popular' 
+                activeFilter === 'active' 
                   ? 'bg-primary text-white' 
                   : 'hover:bg-gray-100 text-gray-700'
               }`}
             >
-              Popular
+              Active Blogs
+            </button>
+            <button 
+              onClick={() => setFilter('blocked')}
+              className={`px-4 py-1.5 rounded-md transition ${
+                activeFilter === 'blocked' 
+                  ? 'bg-primary text-white' 
+                  : 'hover:bg-gray-100 text-gray-700'
+              }`}
+            >
+              Blocked Blogs
             </button>
           </div>
           
           {/* Mobile Filters Dropdown */}
           <div className="md:hidden relative w-full">
             <button 
-              onClick={() => setShowOrders(!showOrders)}
+              onClick={() => setShowFilters(!showFilters)}
               className="w-full flex items-center justify-between px-4 py-2 bg-white border border-gray-200 rounded-md"
             >
               <span className="flex items-center">
                 <Filter size={16} className="mr-2 text-primary" />
-                {activeOrder.charAt(0).toUpperCase() + activeOrder.slice(1)}
+                {activeFilter.charAt(0).toUpperCase() + activeFilter.slice(1)}
               </span>
               <span>▼</span>
             </button>
             
-            {showOrders && (
+            {showFilters && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-20">
                 <button 
-                  onClick={() => setOrder('latest')}
+                  onClick={() => setFilter('all')}
                   className="w-full text-left px-4 py-2 hover:bg-gray-100"
                 >
-                  Latest
+                  All Blogs
                 </button>
                 <button 
-                  onClick={() => setOrder('popular')}
+                  onClick={() => setFilter('active')}
                   className="w-full text-left px-4 py-2 hover:bg-gray-100"
                 >
-                  Popular
+                  Active Blogs
+                </button>
+                <button 
+                  onClick={() => setFilter('blocked')}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  Blocked Blogs
                 </button>
               </div>
             )}
           </div>
           
           <p className="hidden md:block text-sm text-gray-500">
-            {blogs.length} blogs found
+            {adminBlogs.length} blogs found
           </p>
         </div>
       </div>
 
       {/* Loading State */}
-      {loading && !blogs.length ? (
+      {loading && !adminBlogs.length ? (
         <div className="flex flex-col items-center justify-center py-20">
           <LoadingSpinner />
           <p className="mt-4 text-gray-600">Discovering amazing blogs...</p>
@@ -199,14 +199,14 @@ const ExploreBlogs = () => {
         <div className="text-center py-16 bg-red-50 rounded-lg border border-red-100">
           <p className="text-lg text-red-600 mb-4">Failed to load blogs: {error}</p>
           <button
-            onClick={() => dispatch(fetchBlogs())}
+            onClick={() => dispatch(fetchAdminBlogs())}
             className="bg-primary text-white px-6 py-2 rounded-lg shadow-md hover:bg-primary/90 transition flex items-center mx-auto"
           >
             <RefreshCw size={16} className="mr-2" />
             Retry
           </button>
         </div>
-      ) : blogs.length === 0 ? (
+      ) : adminBlogs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 bg-white/50 rounded-xl shadow-sm">
           <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <Compass size={32} className="text-primary" />
@@ -220,7 +220,7 @@ const ExploreBlogs = () => {
         <>
           {/* Blog Grid */}
           <div className="grid gap-8 md:grid-cols-2">
-            {blogs.map((blog) => (
+            {adminBlogs.map((blog) => (
               <BlogCard
                 key={blog.id}
                 blog={{
@@ -235,10 +235,9 @@ const ExploreBlogs = () => {
                   isLiked: blog.is_liked,
                   readCount: blog.read_count,
                 }}
-                onReadCountIncremented={handleReadCountIncremented}
-                onLikeToggle={handleLikeToggle}
-                onCommentSubmit={handleCommentSubmit}
-                onDeleteComment={handleDeleteComment}
+                isAdmin={true}
+                onToggleCommentStatus={handleToggleCommentStatus}
+                onToggleBlogStatus={handleToggleBlogStatus}
               />
             ))}
           </div>
@@ -270,7 +269,7 @@ const ExploreBlogs = () => {
       )}
       
       {/* Loading indicator when loading more posts */}
-      {loading && blogs.length > 0 && (
+      {loading && adminBlogs.length > 0 && (
         <div className="flex justify-center my-8">
           <LoadingSpinner />
         </div>
@@ -279,4 +278,4 @@ const ExploreBlogs = () => {
   );
 };
 
-export default ExploreBlogs;
+export default AdminBlogs;

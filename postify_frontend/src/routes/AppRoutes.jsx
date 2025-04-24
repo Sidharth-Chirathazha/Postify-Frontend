@@ -21,12 +21,13 @@ import LoadingSpinner from '../components/Loading';
 import UserProfile from '../pages/user/UserProfile';
 import UserOwnedBlogs from '../pages/user/UserOwnedBlogs';
 import ExploreBlogs from '../pages/user/ExploreBlogs';
+import AdminUsers from '../pages/admin/AdminUsers';
+import AdminBlogs from '../pages/admin/AdminBlogs';
   
   const AppRoutes = () => {
     const {user, loading} = useSelector((state) => state.auth);
     const isAuthenticated = !!user;
     const dispatch = useDispatch();
-    console.log('User:', user);
 
     useEffect(()=>{
       dispatch(fetchCurrentUser());
@@ -82,7 +83,6 @@ import ExploreBlogs from '../pages/user/ExploreBlogs';
             <Route path="/user/profile" element={<UserProfile />} />
             <Route path="/user/my-blogs" element={<UserOwnedBlogs />} />
             <Route path="/user/explore" element={<ExploreBlogs />} />
-            {/* Add more user routes here, e.g., <Route path="/user/profile" element={<UserProfile />} /> */}
           </Route>
         </Route>
 
@@ -90,7 +90,8 @@ import ExploreBlogs from '../pages/user/ExploreBlogs';
         <Route element={<RequireAuth role="admin" />}>
           <Route element={<AdminLayout user={user} />}>
             <Route path="/admin/home" element={<AdminHome />} />
-            {/* Add more admin routes here */}
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/blogs" element={<AdminBlogs />} />
           </Route>
         </Route>
         

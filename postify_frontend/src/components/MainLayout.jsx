@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
 
-// This will be used for the home/landing page
+
 export default function MainLayout() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -11,10 +11,10 @@ export default function MainLayout() {
       {/* Navigation */}
       <nav className="bg-primary text-cream p-4">
         <div className="container mx-auto flex justify-between items-center">
-          {/* Logo - Always on left */}
+
           <h1 className="text-2xl font-bold">Postify</h1>
           
-          {/* Login/Register buttons for non-authenticated users */}
+
           <div className="space-x-4">
             <button 
               onClick={() => navigate('/login')}
@@ -32,7 +32,7 @@ export default function MainLayout() {
         </div>
       </nav>
 
-      {/* Content Area - This is where the Outlet will render the child routes */}
+
       <div className="flex-grow">
         <Outlet />
       </div>
