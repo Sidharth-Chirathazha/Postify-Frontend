@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Heart, MessageCircle, Eye, Trash2, Edit, Calendar, ChevronLeft, ChevronRight, Lock, Unlock } from 'lucide-react';
 import BlogReadModal from './BlogReadModal';
+import avatar from '../assets/avatar.jpg'
 
 const BlogCard = ({ 
   blog, 
@@ -72,7 +73,7 @@ const BlogCard = ({
           <div className="flex items-center">
             <div className="w-7 h-7 rounded-full overflow-hidden ring-2 ring-primary/20 mr-2 flex-shrink-0">
               <img 
-                src={blog.author.profile_pic} 
+                src={blog.author.profile_pic || avatar} 
                 alt={blog.author.username}
                 className="w-full h-full object-cover"
               />

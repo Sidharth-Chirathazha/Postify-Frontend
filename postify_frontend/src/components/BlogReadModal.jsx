@@ -3,6 +3,7 @@ import { X, Heart, MessageCircle, Eye, Reply, Trash2, ChevronLeft, ChevronRight,
 import { useSelector } from 'react-redux';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import avatar from '../assets/avatar.jpg'
 
 dayjs.extend(relativeTime);
 
@@ -93,7 +94,7 @@ const BlogReadModal = ({
         <div className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700">
           <div className="flex items-center">
             <img 
-              src={blog.author.profile_pic} 
+              src={blog.author.profile_pic || avatar} 
               alt={blog.author.username} 
               className="w-9 h-9 rounded-full object-cover mr-3 border-2 border-white/30 shadow-sm"
             />
@@ -239,7 +240,7 @@ const BlogReadModal = ({
               <div className="p-3 border-t border-gray-200 bg-gray-50">
                 <form onSubmit={handleCommentSubmit} className="flex items-center">
                   <img 
-                    src={user?.profile_pic} 
+                    src={user?.profile_pic || avatar} 
                     alt={user?.username} 
                     className="w-7 h-7 rounded-full object-cover mr-2 border border-gray-300"
                   />
@@ -325,7 +326,7 @@ const Comment = ({
       <div className="p-2.5">
         <div className="flex items-start">
           <img 
-            src={comment.user.profile_pic} 
+            src={comment.user.profile_pic || avatar} 
             alt={comment.user.username} 
             className="w-7 h-7 rounded-full object-cover mr-2 mt-0.5 border border-gray-200"
           />
@@ -406,7 +407,7 @@ const Comment = ({
           <div className="mt-2 pl-9">
             <form onSubmit={handleReplySubmit} className="flex items-center">
               <img 
-                src={user?.profile_pic} 
+                src={user?.profile_pic || avatar} 
                 alt={user?.username} 
                 className="w-5 h-5 rounded-full object-cover mr-1.5 border border-gray-200"
               />

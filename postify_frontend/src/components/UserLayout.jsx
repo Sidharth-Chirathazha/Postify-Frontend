@@ -3,7 +3,8 @@ import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import ConfirmDialog from './ConfirmDialog';
 import { useDispatch } from 'react-redux';
 import { logout, logoutUser } from '../redux/slices/authSlice';
-import { showSuccessToast, showErrorToast } from '../utils/toastConfig';    
+import { showSuccessToast, showErrorToast } from '../utils/toastConfig';
+import avatar from '../assets/avatar.jpg'    
 
 export default function UserLayout({ user }) {
   const navigate = useNavigate();
@@ -85,17 +86,11 @@ export default function UserLayout({ user }) {
             {/* User Profile Display + Logout */}
             <div className="hidden md:flex items-center space-x-3">
               <div className="flex items-center bg-primary-light/10 rounded-full py-1 px-3">
-                {user?.profile_pic ? (
                   <img 
-                    src={user.profile_pic} 
+                    src={user.profile_pic || avatar} 
                     alt={displayName}
                     className="h-8 w-8 rounded-full object-cover border border-cream/30" 
                   />
-                ) : (
-                  <div className="h-8 w-8 rounded-full bg-cream/90 text-primary flex items-center justify-center font-medium">
-                    {displayName.charAt(0).toUpperCase()}
-                  </div>
-                )}
                 <span className="text-cream ml-2 text-sm">{displayName}</span>
               </div>
               <button 
@@ -110,17 +105,11 @@ export default function UserLayout({ user }) {
             <div className="md:hidden flex items-center">
               {/* Mobile profile pic */}
               <div className="mr-3">
-                {user?.profile_pic ? (
                   <img 
-                    src={user.profile_pic} 
+                    src={user.profile_pic || avatar} 
                     alt={displayName}
                     className="h-8 w-8 rounded-full object-cover border border-cream/30" 
                   />
-                ) : (
-                  <div className="h-8 w-8 rounded-full bg-cream/90 text-primary flex items-center justify-center font-medium">
-                    {displayName.charAt(0).toUpperCase()}
-                  </div>
-                )}
               </div>
 
               <button 

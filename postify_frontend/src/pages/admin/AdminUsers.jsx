@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchUsers, toggleUserStatus } from '../../redux/slices/adminSlice'; // Adjust path as needed
 import { showSuccessToast, showErrorToast } from '../../utils/toastConfig';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import avatar from '../../assets/avatar.jpg'
 
 const AdminUsers = () => {
   const dispatch = useDispatch();
@@ -166,17 +167,11 @@ const AdminUsers = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                             <div className="h-10 w-10 rounded-full flex items-center justify-center overflow-hidden">
-                            {user.profile_pic ? (
                                 <img 
-                                src={user.profile_pic} 
+                                src={user.profile_pic || avatar} 
                                 alt={`${user.first_name || user.username}'s profile`}
                                 className="h-full w-full object-cover"
                                 />
-                            ) : (
-                                <div className="h-full w-full bg-primary text-cream flex items-center justify-center font-medium">
-                                {user.first_name?.charAt(0) || user.username?.charAt(0)}
-                                </div>
-                            )}
                             </div>
                             <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
